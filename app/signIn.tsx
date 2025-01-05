@@ -5,13 +5,39 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import React from "react";
 import images from "../constants/images";
 import icons from "../constants/icons";
+import { login } from "../lib/appwrite";
+import { useGlobalContext } from "@/lib/global-provider";
+import { Redirect } from "expo-router";
 
-const signIn = () => {
-  const handleLogin = () => {};
+const SignIn = () => {
+  const { refetch, loading, isLoggedIn } = useGlobalContext();
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (isLoggedIn) {
+    return <Redirect href="/(root)" />;
+  }
+
+  const handleLogin = async () => {
+    const result = await login();
+
+    if (result) {
+      console.log("Login successful");
+    } else {
+      Alert.alert("Error", "Login failed");
+    }
+  };
   return (
     <SafeAreaView className="bg-white h-full">
       <ScrollView contentContainerClassName="h-full">
@@ -52,4 +78,4 @@ const signIn = () => {
   );
 };
 
-export default signIn;
+export default SignIn;
