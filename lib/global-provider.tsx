@@ -1,56 +1,59 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Account } from 'appwrite';
+import React, { createContext, useContext, ReactNode } from "react";
+import { getCurrentUser } from "./appwrite";
+import { useAppwrite } from "./useAppwrite";
 
-type GlobalContextType = {
+interface GlobalContextType {
   isLoggedIn: boolean;
+  user: User | null;
   loading: boolean;
-  refetch: () => void;
-};
+  refetch: (newParams?: Record<string, string | number>) => Promise<void>;
+}
 
-const GlobalContext = createContext<GlobalContextType>({
-  isLoggedIn: false,
-  loading: true,
-  refetch: () => {},
-});
+interface User {
+  $id: string;
+  name: string;
+  email: string;
+  avatar: string;
+}
 
-export function GlobalProvider({ children }: { children: React.ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
+const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
-  const checkAuthStatus = async () => {
-    try {
-      // Add your auth check logic here
-      // For example, using Appwrite:
-      // const account = new Account(client);
-      // const session = await account.getSession('current');
-      // setIsLoggedIn(true);
-    } catch (error) {
-      setIsLoggedIn(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+// interface GlobalProviderProps {
+  //  children: ReactNode;
+// }
 
-  const refetch = () => {
-    setLoading(true);
-    checkAuthStatus();
-  };
+export const GlobalProvider = ({ children }: { children: ReactNode }) => {
+  const {
+    data: user,
+    loading,
+    refetch,
+  } = useAppwrite({
+    fn: getCurrentUser,
+  });
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
+  const isLoggedIn = !!user;
+  console.log(JSON.stringify(user, null, 2));
 
   return (
-    <GlobalContext.Provider value={{ isLoggedIn, loading, refetch }}>
+    <GlobalContext.Provider
+      value={{
+        isLoggedIn,
+        user,
+        loading,
+        refetch,
+      }}
+    >
       {children}
     </GlobalContext.Provider>
   );
-}
+};
 
-export const useGlobalContext = () => {
+export const useGlobalContext = (): GlobalContextType => {
   const context = useContext(GlobalContext);
-  if (!context) {
-    throw new Error('useGlobalContext must be used within a GlobalProvider');
-  }
+  if (!context)
+    throw new Error("useGlobalContext must be used within a GlobalProvider");
+
   return context;
 };
+
+export default GlobalProvider;

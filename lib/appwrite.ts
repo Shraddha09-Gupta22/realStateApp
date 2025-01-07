@@ -44,22 +44,22 @@ export async function login() {
       OAuthProvider.Google,
       redirectUri
     );
-    if (!response) throw new Error("Create OAuth2 token failed");
+    if (!response) throw new Error("Failed to Login!!");
 
     const browserResult = await openAuthSessionAsync(
       response.toString(),
       redirectUri
     );
-    if (browserResult.type !== "success")
-      throw new Error("Create OAuth2 token failed");
+    if (browserResult.type !== "success") throw new Error("Failed to Login!!");
 
     const url = new URL(browserResult.url);
     const secret = url.searchParams.get("secret")?.toString();
     const userId = url.searchParams.get("userId")?.toString();
-    if (!secret || !userId) throw new Error("Create OAuth2 token failed");
+
+    if (!secret || !userId) throw new Error("Failed to Login!! due to userId");
 
     const session = await account.createSession(userId, secret);
-    if (!session) throw new Error("Failed to create session");
+    if (!session) throw new Error("Failed to create a session");
 
     return true;
   } catch (error) {
